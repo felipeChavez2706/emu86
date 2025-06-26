@@ -1,0 +1,79 @@
+#EJERCICIO 1
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Señal cosenoidal x[n] = cos(0.5*pi*n) para n = 0..15
+n = np.arange(16)
+x = np.cos(0.5 * np.pi * n)
+N = len(x)
+
+# FFT
+X_fft = np.fft.fft(x)
+w_fft = np.arange(N) * 2 * np.pi / N  # Frecuencias para FFT
+
+# DTFT (evaluación densa)
+w = np.linspace(0, 2 * np.pi, 1000)  # Frecuencia continua
+X_dtft = x @ np.exp(-1j * np.outer(n, w))  # Producto matricial (vectorizado)
+
+# Gráfica
+plt.figure(figsize=(10, 5))
+plt.plot(w, np.abs(X_dtft), 'b', linewidth=2, label='DTFT')
+
+# FFT: usando stem correctamente para mostrar picos
+markerline, stemlines, baseline = plt.stem(w_fft, np.abs(X_fft), use_line_collection=True)
+plt.setp(markerline, color='r', marker='o')
+plt.setp(stemlines, color='r')
+plt.setp(baseline, visible=False)
+
+# Etiquetas
+plt.xlabel(r'$\omega$ (rad/muestra)')
+plt.ylabel(r'$|X(\omega)|$')
+plt.title(r'Comparación: Magnitud de la DTFT vs FFT para $\cos(0.5\pi n)$')
+plt.legend()
+plt.grid(True)
+plt.tight_layout()
+plt.show()
+
+
+
+#EJERCICIO 2
+
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Parámetros
+Fs = 1000  # Frecuencia de muestreo (Hz)
+T = 1 / Fs  # Periodo de muestreo (s)
+L = 1000  # Longitud de la señal
+t = np.arange(L) * T  # Vector de tiempo
+
+# Señal: suma de dos senoidales + ruido gaussiano
+x = 0.7 * np.sin(2 * np.pi * 50 * t) + np.sin(2 * np.pi * 120 * t)
+y = x + 2 * np.random.randn(L)
+
+# Graficar señal en tiempo (primeros 50 puntos)
+plt.figure(figsize=(10, 4))
+plt.plot(1000 * t[:50], y[:50])  # Tiempo en milisegundos
+plt.title('Señal corrompida por ruido gaussiano')
+plt.xlabel('Tiempo (ms)')
+plt.ylabel('Amplitud')
+plt.grid()
+plt.tight_layout()
+plt.show()
+
+# FFT con zero-padding a la siguiente potencia de 2
+NFFT = 2**int(np.ceil(np.log2(L)))  # Tamaño FFT óptimo (potencia de 2)
+Y = np.fft.fft(y, n=NFFT) / L  # FFT normalizada
+f = Fs / 2 * np.linspace(0, 1, NFFT // 2 + 1)  # Eje de frecuencias (Hz)
+
+# Graficar espectro de amplitud (solo lado positivo)
+plt.figure(figsize=(10, 4))
+plt.plot(f, 2 * np.abs(Y[:NFFT // 2 + 1]))  # Escala doble para amplitud unilateral
+plt.title('Espectro de Amplitud lateral de y(t)')
+plt.xlabel('Frecuencia (Hz)')
+plt.ylabel('|Y(f)|')
+plt.grid()
+plt.tight_layout()
+plt.show()
